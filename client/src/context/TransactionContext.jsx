@@ -1,39 +1,62 @@
-import React, { createContext, useState } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import React, { createContext, useState, useContext, useEffect } from "react";
+import { useAuth } from "./AuthContext";
 
 export const TransactionContext = createContext();
 
 export const TransactionProvider = ({ children }) => {
-  const [transactions, setTransactions] = useLocalStorage('transactions', []);
+  const { currentUser } = useAuth();
+  const userId = currentUser?.id;
+
+  // Load/store transactions for the active user only
+  const storageKey = userId ? `transactions_${userId}` : null;
+  const [transactions, setTransactionsState] = useState(
+    () => JSON.parse(localStorage.getItem(storageKey)) || []
+  );
   const [editingTransaction, setEditingTransaction] = useState(null);
+
+  // Sync to localStorage on transactions/user change
+  useEffect(() => {
+    if (storageKey) {
+      // If switched user, refresh from storage
+      setTransactionsState(JSON.parse(localStorage.getItem(storageKey)) || []);
+    }
+  }, [storageKey]);
+
+  // Save any transaction change
+  useEffect(() => {
+    if (storageKey)
+      localStorage.setItem(storageKey, JSON.stringify(transactions));
+  }, [transactions, storageKey]);
+
+  // All your existing transaction functions with state referring to transactions and setTransactionsState...
 
   const addTransaction = (transaction) => {
     const newTransaction = {
       ...transaction,
       id: Date.now().toString(),
-      date: transaction.date || new Date().toISOString().split('T')[0],
+      date: transaction.date || new Date().toISOString().split("T")[0],
     };
-    setTransactions([...transactions, newTransaction]);
+    setTransactionsState((prev) => [...prev, newTransaction]);
   };
 
   const deleteTransaction = (id) => {
-    setTransactions(transactions.filter((t) => t.id !== id));
+    setTransactionsState((prev) => prev.filter((t) => t.id !== id));
   };
 
   const editTransaction = (id, updatedTransaction) => {
-    setTransactions(
-      transactions.map((t) => (t.id === id ? { ...updatedTransaction, id } : t))
+    setTransactionsState((prev) =>
+      prev.map((t) => (t.id === id ? { ...updatedTransaction, id } : t))
     );
     setEditingTransaction(null);
   };
 
   const exportData = () => {
     const dataStr = JSON.stringify(transactions, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = 'expense-tracker-data.json';
+    link.download = "expense-tracker-data.json";
     link.click();
   };
 
@@ -41,14 +64,21 @@ export const TransactionProvider = ({ children }) => {
     try {
       const importedTransactions = JSON.parse(jsonData);
       if (Array.isArray(importedTransactions)) {
-        setTransactions(importedTransactions);
+        setTransactionsState(importedTransactions);
         return true;
       }
     } catch (error) {
-      console.error('Error importing data:', error);
+      // handle error
     }
     return false;
   };
+
+  // TransactionProvider only works when a user is active
+  // if (!userId) {
+  //   return (
+  //     <div className="text-center text-xl p-8">Please select or add a user.</div>
+  //   );
+  // }
 
   return (
     <TransactionContext.Provider
@@ -67,3 +97,5 @@ export const TransactionProvider = ({ children }) => {
     </TransactionContext.Provider>
   );
 };
+
+export const useTransaction = () => useContext(TransactionContext);

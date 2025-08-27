@@ -1,10 +1,22 @@
 import React, { useContext, useState } from "react";
 import { Download, Upload } from "lucide-react";
 import { TransactionContext } from "../context/TransactionContext";
+import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
 const DataManager = () => {
   const { exportData, importData } = useContext(TransactionContext);
+  const { currentUser } = useAuth();
   const [importError, setImportError] = useState("");
+
+  const handleNoUser = () => {
+    if (!currentUser) {
+      toast.error("Please select or add a user before adding transactions.", {
+        position: "top-right",
+      });
+      return;
+    }
+  };
 
   const handleImport = (event) => {
     const file = event.target.files[0];
@@ -14,9 +26,15 @@ const DataManager = () => {
         const success = importData(e.target.result);
         if (success) {
           setImportError("");
-          alert("Data imported successfully!");
+          event.target.value = "";
+          toast.success("Data imported successfully!", {
+            position: "top-right",
+          });
         } else {
           setImportError("Invalid JSON format");
+          toast.error("Invalid JSON format. Please upload a valid file.", {
+            position: "top-right",
+          });
         }
       };
       reader.readAsText(file);
@@ -28,7 +46,7 @@ const DataManager = () => {
       <h2 className="text-xl font-semibold mb-4">Data Management</h2>
       <div className="flex flex-wrap gap-4">
         <button
-          onClick={exportData}
+          onClick={!currentUser ? handleNoUser : exportData}
           className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
         >
           <Download className="w-4 h-4" />
@@ -38,7 +56,7 @@ const DataManager = () => {
           <input
             type="file"
             accept=".json"
-            onChange={handleImport}
+            onChange={!currentUser ? handleNoUser : handleImport}
             className="hidden"
             id="import-file"
           />

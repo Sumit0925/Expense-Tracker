@@ -32,10 +32,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           {[
             { to: "/", label: "Dashboard", icon: <BarChart2 /> },
             { to: "/transactions", label: "Transactions", icon: <CreditCard /> },
-            { to: "/income-history", label: "Income History", icon: <ArrowDownToLine /> },
-            { to: "/expense-history", label: "Expense History", icon: <ArrowUpToLine /> },
             { to: "/income", label: "Income", icon: <Wallet /> },
             { to: "/expense", label: "Expense", icon: <Activity /> },
+            { to: "/income-history", label: "Income History", icon: <ArrowDownToLine /> },
+            { to: "/expense-history", label: "Expense History", icon: <ArrowUpToLine /> },
           ].map((item) => (
             <NavLink
               key={item.to}

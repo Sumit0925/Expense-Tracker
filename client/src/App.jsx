@@ -16,26 +16,28 @@ const App = () => {
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
   return (
-    <Router>
-      <div className="flex bg-gray-50 min-h-screen">
-        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-        <div className={`flex-1 w-full transition-all duration-300 md:ml-64`}>
-          <Navbar toggleSidebar={toggleSidebar} />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/transactions" element={<Transactions />} />
-              <Route path="/income-history" element={<IncomeHistory />} />
-              <Route path="expense-history" element={<ExpenseHistory />} />
-              <Route path="/income" element={<Income />} />
-              <Route path="/expense" element={<Expense/>} />
-              {/* ...other routes... */}
-            </Routes>
-          </main>
-          {/* <Footer /> */}
+    <>
+      <Router>
+        <div className="flex bg-gray-50 min-h-screen">
+          <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+          <div className={`flex-1 w-full transition-all duration-300 md:ml-64`}>
+            <Navbar toggleSidebar={toggleSidebar} />
+            <main className="container mx-auto px-4 py-8">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/transactions" element={<Transactions />} />
+                <Route path="/income-history" element={<IncomeHistory />} />
+                <Route path="expense-history" element={<ExpenseHistory />} />
+                <Route path="/income" element={<Income />} />
+                <Route path="/expense" element={<Expense />} />
+                {/* ...other routes... */}
+              </Routes>
+            </main>
+            {/* <Footer /> */}
+          </div>
         </div>
-      </div>
-    </Router>
+      </Router>
+    </>
   );
 };
 
