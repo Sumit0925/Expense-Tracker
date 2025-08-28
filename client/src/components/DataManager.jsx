@@ -11,7 +11,7 @@ const DataManager = () => {
 
   const handleNoUser = () => {
     if (!currentUser) {
-      toast.error("Please select or add a user before adding transactions.", {
+      toast.error("Please select or add a user before importing/exporting transactions.", {
         position: "top-right",
       });
       return;

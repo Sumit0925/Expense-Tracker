@@ -9,9 +9,12 @@ export const TransactionProvider = ({ children }) => {
 
   // Load/store transactions for the active user only
   const storageKey = userId ? `transactions_${userId}` : null;
-  const [transactions, setTransactionsState] = useState(
-    () => JSON.parse(localStorage.getItem(storageKey)) || []
-  );
+  const [transactions, setTransactionsState] = useState(() => {
+    if (storageKey) {
+      return JSON.parse(localStorage.getItem(storageKey)) || [];
+    }
+    return [];
+  });
   const [editingTransaction, setEditingTransaction] = useState(null);
 
   // Sync to localStorage on transactions/user change
@@ -19,18 +22,23 @@ export const TransactionProvider = ({ children }) => {
     if (storageKey) {
       // If switched user, refresh from storage
       setTransactionsState(JSON.parse(localStorage.getItem(storageKey)) || []);
+    } else {
+      // If no user (storageKey is null), clear transactions
+      setTransactionsState([]);
     }
   }, [storageKey]);
 
-  // Save any transaction change
+  // Save any transaction change (only if there's a valid user)
   useEffect(() => {
-    if (storageKey)
+    if (storageKey) {
       localStorage.setItem(storageKey, JSON.stringify(transactions));
+    }
   }, [transactions, storageKey]);
 
-  // All your existing transaction functions with state referring to transactions and setTransactionsState...
-
   const addTransaction = (transaction) => {
+    // Only allow adding transactions if there's a current user
+    if (!userId) return;
+    
     const newTransaction = {
       ...transaction,
       id: Date.now().toString(),
@@ -40,10 +48,16 @@ export const TransactionProvider = ({ children }) => {
   };
 
   const deleteTransaction = (id) => {
+    // Only allow deleting transactions if there's a current user
+    if (!userId) return;
+    
     setTransactionsState((prev) => prev.filter((t) => t.id !== id));
   };
 
   const editTransaction = (id, updatedTransaction) => {
+    // Only allow editing transactions if there's a current user
+    if (!userId) return;
+    
     setTransactionsState((prev) =>
       prev.map((t) => (t.id === id ? { ...updatedTransaction, id } : t))
     );
@@ -51,6 +65,9 @@ export const TransactionProvider = ({ children }) => {
   };
 
   const exportData = () => {
+    // Only allow export if there's a current user and transactions
+    if (!userId || transactions.length === 0) return;
+    
     const dataStr = JSON.stringify(transactions, null, 2);
     const dataBlob = new Blob([dataStr], { type: "application/json" });
     const url = URL.createObjectURL(dataBlob);
@@ -61,6 +78,9 @@ export const TransactionProvider = ({ children }) => {
   };
 
   const importData = (jsonData) => {
+    // Only allow import if there's a current user
+    if (!userId) return false;
+    
     try {
       const importedTransactions = JSON.parse(jsonData);
       if (Array.isArray(importedTransactions)) {
@@ -72,13 +92,6 @@ export const TransactionProvider = ({ children }) => {
     }
     return false;
   };
-
-  // TransactionProvider only works when a user is active
-  // if (!userId) {
-  //   return (
-  //     <div className="text-center text-xl p-8">Please select or add a user.</div>
-  //   );
-  // }
 
   return (
     <TransactionContext.Provider
